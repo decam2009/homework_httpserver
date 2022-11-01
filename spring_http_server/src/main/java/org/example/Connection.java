@@ -30,10 +30,22 @@ public class Connection implements Runnable {
         try {
             final var requestLine = in.readLine();
             final var parts = requestLine.split(" ");
+
             if (parts.length != 3) {
                 // just close socket
                 client.close();
             }
+
+            Request request = new Request(parts[0], parts[1], parts[0].equals("GET") ? null : requestLine);
+
+            if (request.getMethod().equals("GET")) {
+                Server.handlers.get(request.getMethod()).get(request.getPathRequest()).handle(request, out);
+            }
+
+            if (request.getMethod().equals("POST")) {
+                Server.handlers.get(request.getMethod()).get(request.getPathRequest()).handle(request, out);
+            }
+
             final var path = parts[1];
             if (!validPaths.contains(path)) {
                 out.write((
@@ -79,7 +91,7 @@ public class Connection implements Runnable {
             out.flush();
             client.close();
         } catch (IOException e) {
-            System.out.printf(" Exception %s ", e.getMessage());
+            System.out.printf(" Exception %s \n", e.getMessage());
         }
     }
 }
